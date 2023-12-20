@@ -1,7 +1,6 @@
 import pygame
 import random
 from typing import List
-import math
 
 class Player:
     def __init__(self, x, y, width, height):
@@ -31,6 +30,7 @@ class Player:
         if self.jump_peak:
             # Descendre
             if self.y + self.height < self.moving_ground:
+
                 self.y += self.jump_vel
                 self.jump_vel += self.gravity
             else:
@@ -61,12 +61,21 @@ class Player:
                 self.isJump = True
                 if self.on_platform:
                     self.on_platform = False
-                    self.y += 7
+                    #self.y += 7
                 self.jump_move()
+
+            else:
+                if self.on_platform:
+                    x1, x2, y = self.platforms_coord[self.platform_num]
+                    self.y = y - self.height
+                elif self.moving_ground == 600:
+                    self.y = self.ground - self.height
         else:
             self.jump_move()
 
-        if self.y <= win_height/2:
+
+
+        if self.y < win_height/2:
             self.y = win_height/2
             self.moving_ground += self.jump_vel
             self.move_window()
@@ -76,7 +85,6 @@ class Player:
     def is_on_platform(self):
         for i, (x1, x2, y) in enumerate(self.platforms_coord):
             if (y < self.y + self.height < y + 12) and (x1 < self.x + self.width and x2 > self.x):
-                print(f"j'ai atteint la plateforme")
                 self.y = y - self.height
                 self.on_platform = True
                 self.platform_num = i
@@ -87,7 +95,6 @@ class Player:
         if self.on_platform:
             x1, x2, y = self.platforms_coord[self.platform_num]
             if not (x1 < self.x + self.width and x2 > self.x):
-                print("je ne suis plus sur la plateforme et je tombe")
                 self.isJump = True
                 self.jump_peak = True
                 self.jump_vel = 0
@@ -174,7 +181,6 @@ class GameRules:
 
 
 def game_init():
-    print("This is executed")
     WIDTH, HEIGHT = 800, 600
     player = Player(x=50, y=HEIGHT - 50, width=40, height=50)
     platforms = Platforms(HEIGHT, WIDTH, 300)
@@ -220,3 +226,5 @@ while running:
     pygame.display.update()  # Update the display
 
 #pygame.quit()
+
+#enregistrer le temps de parcours
