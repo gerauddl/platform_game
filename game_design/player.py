@@ -46,33 +46,50 @@ class Player:
             if self.jump_vel <= 0:
                 self.jump_peak = True
 
-    def move(self, action_num=None):
+    def move(self, action_num=None, human_mode=False):
+        keys = pygame.key.get_pressed()
 
         self.is_on_platform()
 
         # left move
-        if action_num == 0 and self.x > self.vel:
-            self.x -= self.vel
+        if not human_mode:
+            if action_num == 0 and self.x > self.vel:
+                self.x -= self.vel
+            if action_num == 1 and self.x < 800 - self.width - self.vel:
+                self.x += self.vel
+        else:
+            if keys[pygame.K_LEFT] and self.x > self.vel:
+                self.x -= self.vel
+            if keys[pygame.K_RIGHT] and self.x < 800 - self.width - self.vel:
+                self.x += self.vel
 
         # right move
-        if action_num == 1 and self.x < 800 - self.width - self.vel:
-            self.x += self.vel
+
 
         if not self.isJump:
             # jumping move
-            if action_num == 2:
-                self.isJump = True
-                if self.on_platform:
-                    self.on_platform = False
+            if not human_mode:
+                if action_num == 2:
+                    self.isJump = True
+                    if self.on_platform:
+                        self.on_platform = False
                     #self.y += 7
-                self.jump_move()
-
+                    self.jump_move()
             else:
-                if self.on_platform:
-                    x1, x2, y = self.platforms_coord[self.platform_num]
-                    self.y = y - self.height
-                elif self.moving_ground == 600:
-                    self.y = self.ground - self.height
+                if keys[pygame.K_SPACE]:
+                    self.isJump = True
+                    if self.on_platform:
+                        self.on_platform = False
+                        # self.y += 7
+                    self.jump_move()
+
+
+                else:
+                    if self.on_platform:
+                        x1, x2, y = self.platforms_coord[self.platform_num]
+                        self.y = y - self.height
+                    elif self.moving_ground == 600:
+                        self.y = self.ground - self.height
         else:
             self.jump_move()
 

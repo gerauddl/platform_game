@@ -26,7 +26,7 @@ class Platforms:
     def set_platforms(self, win):
         platforms_coordinates = []
         for i in range(self.number_platforms):
-            random.seed(self.seed + i)
+            random.seed()
             x, y, width = self.set_platform_position(i)
             self.width.append(width)
             platforms_coordinates.append((x, x + self.width[i], y))
