@@ -2,11 +2,11 @@ import pygame
 import math
 import sys
 import time
-
 import torch
 
-sys.path.insert(0, '/Users/geraud/Documents/GitHub/platform_game')
 
+sys.path.insert(0, '/Users/geraud/code/game/platform_game')
+print(sys.path)
 from game_design.game_init import game_init
 from reinforcement_learning.action import Action
 from reinforcement_learning.state import State
@@ -30,15 +30,15 @@ memory = ReplayMemory(300000, action_mapping=action_mapping)
 action = Action(action_mapping=action_mapping)
 
 optimizer = optim.Adam(dqn.parameters(), lr=0.0001)
-num_episodes = 8500
-epsilon_start = 0.86
+num_episodes = 10000
+epsilon_start = 1
 epsilon_end = 0.1
-epsilon_decay = num_episodes
+epsilon_decay = num_episodes/2.5
 epsilon_by_episode = lambda episode: epsilon_end + (epsilon_start - epsilon_end) * math.exp(-1. * episode / epsilon_decay)
-batch_size = 1024
+batch_size = 512
 action_mapping = {0: 'left move', 1: 'right move', 2: 'spacing move'}
 
-dqn.load_state_dict(torch.load('/Users/geraud/Documents/game_weights/model_dqn_platform_game_1500.pth'))
+#dqn.load_state_dict(torch.load('/Users/geraud/code/game/game_weights/model_dqn_platform_game_200.pth'))
   # Mettre le modèle en mode évaluation si vous l'utilisez pour l'inférence
 human_mode = False
 i= 0
@@ -64,7 +64,7 @@ for episode in range(num_episodes):
     current_state = torch.tensor([initial_dist, float(state.direction_x)], dtype=torch.float32)
 
     if episode % 100 == 0 and episode != 0:
-        torch.save(dqn.state_dict(), f'/Users/geraud/Documents/game_weights/model_dqn_platform_game_{episode+1500}.pth')
+        torch.save(dqn.state_dict(), f'/Users/geraud/code/game/game_weights/model_dqn_platform_game_{episode}.pth')
     rewards = []
 
     reward = 0
@@ -95,7 +95,7 @@ for episode in range(num_episodes):
             state.get_current_state(player_coord, player.platforms_coord, player.platform_num, win, initial_state=True)
             next_state_dist = state.distances
 
-        reward = player.score(win)/10 + 200/next_state_dist
+        reward = player.score(win)/8 + 50/next_state_dist
         next_state = torch.tensor([next_state_dist,
                                    float(state.direction_x)], dtype=torch.float32)
         if nb_action != 0:
@@ -134,7 +134,7 @@ for episode in range(num_episodes):
 
         current_time = time.time()
 
-        if player.score(win) < 100 and current_time - time_start > 10:
+        if player.score(win) < 100 and current_time - time_start > 7:
             done = True
 
         i += 1
