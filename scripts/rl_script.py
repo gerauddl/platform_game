@@ -30,15 +30,15 @@ memory = ReplayMemory(300000, action_mapping=action_mapping)
 action = Action(action_mapping=action_mapping)
 
 optimizer = optim.Adam(dqn.parameters(), lr=0.0001)
-num_episodes = 10000
-epsilon_start = 1
+num_episodes = 8500
+epsilon_start = 0.86
 epsilon_end = 0.1
 epsilon_decay = num_episodes
 epsilon_by_episode = lambda episode: epsilon_end + (epsilon_start - epsilon_end) * math.exp(-1. * episode / epsilon_decay)
-batch_size = 2048
+batch_size = 1024
 action_mapping = {0: 'left move', 1: 'right move', 2: 'spacing move'}
 
-#dqn.load_state_dict(torch.load('/Users/geraud/Documents/game_weights/model_dqn_platform_game_1000.pth'))
+dqn.load_state_dict(torch.load('/Users/geraud/Documents/game_weights/model_dqn_platform_game_1500.pth'))
   # Mettre le modèle en mode évaluation si vous l'utilisez pour l'inférence
 human_mode = False
 i= 0
@@ -64,7 +64,7 @@ for episode in range(num_episodes):
     current_state = torch.tensor([initial_dist, float(state.direction_x)], dtype=torch.float32)
 
     if episode % 100 == 0 and episode != 0:
-        torch.save(dqn.state_dict(), f'/Users/geraud/Documents/game_weights/model_dqn_platform_game_{episode}.pth')
+        torch.save(dqn.state_dict(), f'/Users/geraud/Documents/game_weights/model_dqn_platform_game_{episode+1500}.pth')
     rewards = []
 
     reward = 0
@@ -88,7 +88,7 @@ for episode in range(num_episodes):
             action_count[selected_action.item()] +=1
         player_coord = (player.x, player.y)
 
-        if player.score(win) > 150:
+        if player.score(win) > 35:
             state.get_current_state(player_coord, player.platforms_coord, player.platform_num, win)
             next_state_dist = state.distances
         else:
@@ -134,7 +134,7 @@ for episode in range(num_episodes):
 
         current_time = time.time()
 
-        if player.score(win) < 100 and current_time - time_start > 6:
+        if player.score(win) < 100 and current_time - time_start > 10:
             done = True
 
         i += 1
