@@ -98,6 +98,8 @@ class Player:
             self.moving_ground += self.jump_vel
             self.move_window()
 
+        if self.moving_ground - 1 < self.y + self.height < self.moving_ground + 1:
+            self.on_platform = True
         return self.ground, self.is_on_platform(), self.plat_coord
 
     def is_on_platform(self):
@@ -112,8 +114,12 @@ class Player:
                 self.bin_platform = 1
                 self.plat_coord = self.platforms_coord[i]
                 return True
+            
         if self.on_platform:
-            x1, x2, y = self.platforms_coord[self.platform_num]
+            if self.moving_ground - 1 < self.y + self.height < self.moving_ground + 1:
+                x1, x2, y = (0, 800, 600)
+            else:
+                x1, x2, y = self.platforms_coord[self.platform_num]
             if not (x1 < self.x + self.width and x2 > self.x):
                 self.isJump = True
                 self.jump_peak = True

@@ -20,7 +20,9 @@ class State:
         if not initial_state:
             self.plat_coord = self.platforms[self.plat_num]
         else:
-            self.plat_coord = (0, 0, 600)
+            self.plat_coord = (0, 800, 600)
+        
+        self.plat_width = self.plat_coord[1] - self.plat_coord[0]
         self.get_next_platforms(initial_state)
         self.distances = self.calculate_distance()
         self.distances = self.distances / 50
