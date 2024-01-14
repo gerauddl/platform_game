@@ -22,6 +22,7 @@ class Player:
         self.platforms_coord = platforms_coord
         self.bin_platform = 1
         self.plat_coord = (0, win_height, 0)
+        self.is_falling = False
 
     def draw(self, win):
         pygame.draw.rect(win, (255, 0, 0), (self.x, self.y, self.width, self.height))
@@ -30,8 +31,9 @@ class Player:
         if self.jump_peak:
             # Descendre
             if self.y + self.height < self.moving_ground:
+                if not self.is_falling:
+                    self.y += self.jump_vel
 
-                self.y += self.jump_vel
                 self.jump_vel += self.gravity
             else:
                 self.isJump = False
@@ -93,13 +95,30 @@ class Player:
         else:
             self.jump_move()
 
-        if self.y < self.win_height/2:
-            self.y = self.win_height/2
+        if self.y + self.height < self.win_height/2:
+            self.y = self.win_height/2 - self.height
             self.moving_ground += self.jump_vel
             self.move_window()
 
+        if self.y + self.height >= self.win_height and self.moving_ground != self.win_height:
+            self.y = self.win_height - self.height
+            self.moving_ground -= self.jump_vel
+            self.move_window(up=False)
+            self.is_falling = True
+            if 590 < self.moving_ground < 610:
+                self.moving_ground = 600
+                self.isJump = False
+                self.is_falling = False
+
         if self.moving_ground - 1 < self.y + self.height < self.moving_ground + 1:
-            self.on_platform = True
+            if not human_mode:
+                self.on_platform = True
+            else:
+                pass
+        else:
+            if not human_mode:
+                self.on_platform = False
+
         return self.ground, self.is_on_platform(), self.plat_coord
 
     def is_on_platform(self):
@@ -113,6 +132,7 @@ class Player:
                 self.jump_vel = 10
                 self.bin_platform = 1
                 self.plat_coord = self.platforms_coord[i]
+                self.is_falling =False
                 return True
             
         if self.on_platform:
@@ -131,10 +151,14 @@ class Player:
         self.bin_platform = 0
         return False
 
-    def move_window(self):
+    def move_window(self, up=True):
         platforms_y = [platform_coord[2] for platform_coord in self.platforms_coord]
-        for i, y in enumerate(platforms_y):
-            self.platforms_coord[i] = self.platforms_coord[i][:2] + (y + self.jump_vel,)
+        if up:
+            for i, y in enumerate(platforms_y):
+                self.platforms_coord[i] = self.platforms_coord[i][:2] + (y + self.jump_vel,)
+        else:
+            for i, y in enumerate(platforms_y):
+                self.platforms_coord[i] = self.platforms_coord[i][:2] + (y - self.jump_vel,)
 
     def score(self, win):
 

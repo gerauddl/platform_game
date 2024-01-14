@@ -21,5 +21,6 @@ class GameRules:
 
     def is_loosing(self):
         if self.player_y > self.ground + 10:
-            return True
+
+            return False
         return False
