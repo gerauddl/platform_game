@@ -3,37 +3,36 @@
 ## Project Summary: Reinforcement Learning in a Platform Game
 
 ### Overview
-This project integrates reinforcement learning (RL) into a simple platform game using Python, Pygame, and PyTorch. The objective is to train an agent to navigate through the game environment, maximizing scores while making intelligent decisions.
+This project involves the integration of reinforcement learning techniques within a simple platform game. It is built using Python, Pygame, and PyTorch, aiming to train an agent to navigate the game environment and maximize its score through intelligent decision-making.
 
-### Key Components
+### Libraries and Modules
+The code employs a range of libraries and modules:
+- Standard Python libraries like `os`, `math`, `sys`, `time`, and `random`.
+- For game development and design: `pygame`.
+- Machine learning functionalities are provided by `torch` and `numpy`.
+- Utilities such as `multiprocessing` and `functools.partial` for efficiency.
+- Custom modules including `game_init`, `Action`, `State`, `DQN`, `ReplayMemory` are part of the `game_design` and `reinforcement_learning` packages.
 
- **Libraries and Modules**
-   - Standard libraries: `os`, `math`, `sys`, `time`, `random`.
-   - Game design: `pygame`.
-   - Machine learning: `torch`, `numpy`.
-   - Utilities: `multiprocessing`, `functools.partial`.
-   - Custom modules: `game_init`, `Action`, `State`, `DQN`, `ReplayMemory` from `game_design` and `reinforcement_learning` packages.
+### Function Definitions
+- `draw_text`: A utility to display text within the game window.
+- `rl_training`: The core function for reinforcement learning training. It sets up the game, executes the learning algorithm, and manages the saving of model weights.
 
- **Function Definitions**
-   - `draw_text`: Display text on the game window.
-   - `rl_training`: Main function for RL training. It initializes the game environment, implements the learning loop, and saves model weights.
+### Game Initialization and Training Settings
+- The game window is defined with dimensions 800x600.
+- The Deep Q-Network (DQN) model is used for decision-making processes.
+- Other key elements include `State` for managing game states, `Action` for handling player actions, and `ReplayMemory` for efficient learning.
 
- **Game Initialization and Settings**
-   - Window dimensions set to 800x600.
-   - DQN (Deep Q-Network) for decision making.
-   - `State`, `Action`, and `ReplayMemory` for managing game states, actions, and memory replay.
+### Training Mechanics
+- The agent's learning process involves looping over a set number of episodes.
+- It involves tracking and updating the agent's scores, adjusting epsilon values for exploration, and managing game states.
+- Key processes include action selection, state transitions, and reward assessments.
+- Model checkpoints are saved periodically for future use or analysis.
 
- **Training Process**
-   - Loops over a specified number of episodes.
-   - Tracks and updates scores, epsilon values for exploration, and game states.
-   - Performs action selection, state transition, and reward calculation.
-   - Saves the DQN model periodically.
+### Parallel Training Approach
+- Training parameters like the number of episodes, DQN inputs, batch size, initial epsilon, and memory length are meticulously set.
+- The project leverages `multiprocessing.Pool` for simultaneous training sessions across different sets of parameters.
 
- **Multiprocessing for Parallel Training**
-   - Parameters like `num_episodes`, `dqn_input`, `batch_size`, `epsilon_start`, `memory_len` are set.
-   - Uses `multiprocessing.Pool` for parallel training across different configurations.
-
-### Execution
-The script, when run (`if __name__ == "__main__":`), initializes the training parameters, shuffles them, and starts the RL training in parallel using multiple processes.
+### Execution Strategy
+On execution (`if __name__ == "__main__":`), the script organizes the training parameters, shuffles them, and commences the reinforcement learning training across multiple processes.
 
 ---
