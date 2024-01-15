@@ -1,5 +1,3 @@
-Here's a Markdown summary of the project in English:
-
 ---
 
 ## Project Summary: Reinforcement Learning in a Platform Game
@@ -39,5 +37,3 @@ This project integrates reinforcement learning (RL) into a simple platform game 
 The script, when run (`if __name__ == "__main__":`), initializes the training parameters, shuffles them, and starts the RL training in parallel using multiple processes.
 
 ---
-
-This summary provides a high-level overview of the project's structure and functionality.
