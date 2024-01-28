@@ -11,7 +11,11 @@ def game_init(win):
     platforms = Platforms(height, width, 300)
     platforms_coordinates = platforms.set_platforms(win)
     random.seed()
-    player = Player(x=400, y=height - 50, width=40, height=50, win_height=height, platforms_coord=platforms_coordinates)
+    player = Player(x=400, y=600,
+                    width=40,
+                    height=50,
+                    win_height=height,
+                    platforms_coord=platforms_coordinates)
     game_rules = GameRules()
 
     return player, platforms, game_rules

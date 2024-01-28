@@ -29,9 +29,10 @@ def draw_text(text, x_placement, win):
     win.blit(score_text, (x_placement, 10))
 
 
-def rl_training(index, num_episodes, dqn_input, batch_size, epsilon_start, memory_len, human_mode = False, weights_num = None, load_weights=False):
-
-    os.mkdir(f'/Users/geraud/Documents/game_weights/pool_{index}')
+def rl_training(index, num_episodes, dqn_input, batch_size, epsilon_start, memory_len, human_mode = False, weights_num = 0, load_weights=False):
+    weights_path = f'/Users/geraud/Documents/game_weights/pool_{index}'
+    if not os.path.exists(weights_path):
+        os.mkdir(weights_path)
     pygame.init()
     # Game window dimensions
     WIDTH, HEIGHT = 800, 600
@@ -62,7 +63,7 @@ def rl_training(index, num_episodes, dqn_input, batch_size, epsilon_start, memor
         if episode != 0:
             highest_ep_score = max(scores)
             max_scores.append(highest_ep_score)
-            print(f"A l'épisode {episode - 1}, le score le plus haut était de {highest_ep_score}")
+            print(f"A l'épisode {weights_num + episode - 1}, le score le plus haut était de {highest_ep_score}")
             if nb_know_action != 0:
                 for key, value in action_count.items():
                     print(f"{action_mapping[key]}: {(value/nb_know_action) * 100:.2f}%")
@@ -78,19 +79,18 @@ def rl_training(index, num_episodes, dqn_input, batch_size, epsilon_start, memor
         player_coord = (player.x, player.y)
         state.get_current_state(player_coord, player.platforms_coord, player.platform_num, win, initial_state=True)
         initial_dist = state.distances
-        current_state = torch.tensor([initial_dist[0], float(state.direction_x),
+        current_state = torch.tensor([initial_dist[0],
+                                      float(state.direction_x)
                                       ], dtype=torch.float32)
 
         if episode % 100 == 0 and episode != 0:
             torch.save(dqn.state_dict(), f'/Users/geraud/Documents/game_weights/pool_{index}/model_dqn_platform_game_{episode}.pth')
         scores = []
 
-        reward = 0
         done = False
 
         nb_action = 0
         nb_know_action = 0
-        l_left_move_dist = []
         while not done:
 
             pygame.time.delay(0)
@@ -106,14 +106,15 @@ def rl_training(index, num_episodes, dqn_input, batch_size, epsilon_start, memor
                 action_count[selected_action.item()] +=1
             player_coord = (player.x, player.y)
 
-            if player.score(win) > 280:
+            if type(player.platform_num) == int:
                 state.get_current_state(player_coord, player.platforms_coord, player.platform_num, win)
                 next_state_dist = state.distances
             else:
                 state.get_current_state(player_coord, player.platforms_coord, player.platform_num, win, initial_state=True)
                 next_state_dist = state.distances
 
-            reward = player.score(win)/10 + 1000/next_state_dist[0]
+            reward = player.score(win)
+
             if player.score(win) > highest_score:
                 highest_score = player.score(win)
 
@@ -138,8 +139,8 @@ def rl_training(index, num_episodes, dqn_input, batch_size, epsilon_start, memor
             if len(memory) > batch_size:
                 batch = memory.sample(batch_size)
                 optimize_model(dqn, optimizer, batch)
-                #if i % 10000 == 0 and i != 0:
-                    #memory.get_batch_info(batch)
+                if i % 10000 == 0 and i != 0:
+                    memory.get_batch_info(batch)
 
             if game_rules.game_over:
                 done = True
@@ -149,7 +150,7 @@ def rl_training(index, num_episodes, dqn_input, batch_size, epsilon_start, memor
             player.draw(win)  # Draw the player on the window
 
             draw_text(f"Highest score: {highest_score}", 300, win)
-            draw_text(f"Episode: {episode+1}/{num_episodes}", 110, win)
+            draw_text(f"Episode: {weights_num+episode+1}/{num_episodes}", 110, win)
             if episode == 0:
                 draw_text(f"Average highest score: {0}", 505, win)
             else:
@@ -162,25 +163,27 @@ def rl_training(index, num_episodes, dqn_input, batch_size, epsilon_start, memor
 
             current_time = time.time()
 
-            if player.score(win) < 100 and current_time - time_start > 7:
+            if player.score(win) == 0 and current_time - time_start > 5:
                 done = True
-            if current_time - time_start > 70:
+            if current_time - time_start > 20:
                 done = True
+            #if i != 0 and i % 3000 == 0:
+                #epsilon = epsilon_by_episode(episode)
+                #episode += 1
 
             i += 1
 
-10000*2**12
 if __name__ == "__main__":
     #num_episodes, dqn_input, batch_size, epsilon_start, memory_len
-
-    t_id = [i+1 for i in range(12)]
-    l_batch_size = [64 * 2 ** (i // 2) for i in range(14)]
-    l_memory_len = [10000 * 2 ** (i // 2) for i in range(14)]
+    n = 1
+    t_id = [i+1 for i in range(n)]
+    l_batch_size = [64 * 2 ** (i // 2) for i in range(n+2)]
+    l_memory_len = [10000 * 2 ** (i // 2) for i in range(n+2)]
     random.shuffle(l_batch_size)
     random.shuffle(l_memory_len)
-    input = [(id, 2000, 2, batch_size, 1, mem) for id, batch_size, mem in zip(t_id, l_batch_size, l_memory_len)]
-    print(input)
+    input = [(id, 2000, 2, batch_size, 0.95, mem) for id, batch_size, mem in zip(t_id, l_batch_size, l_memory_len)]
+    input = [(1, 2500, 3, 128, 1, 60000)]
     rl_train_mp = partial(rl_training)
-    num_process = 12
+    num_process = n
     pool = multiprocessing.Pool(num_process)
     result = pool.starmap(rl_train_mp, input)

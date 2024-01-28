@@ -44,5 +44,5 @@ def optimize_model(dqn, optimizer, batch, gamma=0.99):
     # Optimisation
     optimizer.zero_grad()
     loss.backward()
-    torch.nn.utils.clip_grad_norm_(dqn.parameters(), 3)
+    torch.nn.utils.clip_grad_norm_(dqn.parameters(), 1)
     optimizer.step()

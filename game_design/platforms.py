@@ -14,7 +14,7 @@ class Platforms:
     def set_platform_position(self, i):
         width = random.randint(40, 150)
         x = random.randint(0, self.win_width - width)
-        y = random.randint(self.win_height - 230 - (130*i), (self.win_height - 100 - (130*i)))
+        y = self.win_height - 200 - (200*i)
         return x, y, width
 
     def draw_platform(self, x, y, width, win):
@@ -31,11 +31,10 @@ class Platforms:
             self.width.append(width)
             platforms_coordinates.append((x, x + self.width[i], y))
             self.draw_platform(x, y, self.width[i], win)
-            self.draw_center_platform(win, x, y)
             self.draw_center_platform(win, x + self.width[i], y)
 
         return platforms_coordinates
 
     def move_platforms(self, platforms_coordinates, win):
         for i, (x1, x2, y) in enumerate(platforms_coordinates):
-            pygame.draw.rect(win, (255, 0, 0), (x1, y, self.width[i], self.height))
+            self.draw_platform(x1, y, self.width[i], win)

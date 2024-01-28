@@ -11,6 +11,7 @@ class State:
         self.direction_x = None
         self.direction_y = None
         self.initial_state = False
+        self.plat_width = None
 
     def get_current_state(self, player_position, platforms, plat_num, win, initial_state=False):
         self.initial_state = initial_state
@@ -27,7 +28,7 @@ class State:
         self.distances = [self.calculate_distance(plat) for plat in self.next_platforms[:2]]
         self.distances = [dist/10 for dist in self.distances]
         self.get_direction_x()
-
+        self.draw_center_platform(win)
     def get_next_platforms(self, initial_state):
         if initial_state:
             l_plat_raw = [((platform[1] + platform[0]) / 2, platform[2]) for platform in self.platforms]
@@ -63,6 +64,6 @@ class State:
             self.direction_y = 0
 
     def draw_center_platform(self, win):
-        x, y = self.next_platforms
+        x, y = self.next_platforms[0]
 
         pygame.draw.rect(win, (0, 255, 100), (x, y-10, 10, 10))

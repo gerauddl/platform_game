@@ -112,6 +112,7 @@ class Player:
 
         if self.moving_ground - 1 < self.y + self.height < self.moving_ground + 1:
             if not human_mode:
+                self.platform_num = None
                 self.on_platform = True
             else:
                 pass
