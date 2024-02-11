@@ -10,7 +10,6 @@ def game_init(win):
     width, height = 800, 600
     platforms = Platforms(height, width, 300)
     platforms_coordinates = platforms.set_platforms(win)
-    random.seed()
     player = Player(x=400, y=600,
                     width=40,
                     height=50,

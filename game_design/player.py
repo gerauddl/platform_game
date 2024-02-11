@@ -10,7 +10,9 @@ class Player:
         self.moving_ground = win_height
         self.width = width
         self.height = height
-        self.vel = 10  # Velocity
+        self.vel = 15  # Velocity
+        self.going_right = False
+        self.going_left = False
         self.isJump = False
         self.jump_peak = False
         self.jump_vel = 10  # Vélocité initiale de saut
@@ -57,14 +59,35 @@ class Player:
         if not human_mode:
             if action_num == 0 and self.x > self.vel:
                 self.x -= self.vel
+                self.going_right = False
+                self.going_left = True
+                self.vel_fading = 10
             if action_num == 1 and self.x < 800 - self.width - self.vel:
                 self.x += self.vel
+                self.going_right = True
+                self.going_left = False
+                self.vel_fading = 10
         else:
             if keys[pygame.K_LEFT] and self.x > self.vel:
                 self.x -= self.vel
+                self.going_right = False
+                self.going_left = True
+                self.vel_fading = 10
             if keys[pygame.K_RIGHT] and self.x < 800 - self.width - self.vel:
                 self.x += self.vel
+                self.going_right = True
+                self.going_left = False
+                self.vel_fading = 10
 
+        #if self.going_right and self.x < self.vel_fading:
+            #self.x += self.vel_fading
+            #if self.vel_fading >= 1:
+                #self.vel_fading -= 1
+
+        #if self.going_left and self.x > self.vel_fading:
+            #self.x -= self.vel_fading
+            #if self.vel_fading >= 1:
+                #self.vel_fading -= 1
         # right move
 
 
@@ -161,12 +184,6 @@ class Player:
             for i, y in enumerate(platforms_y):
                 self.platforms_coord[i] = self.platforms_coord[i][:2] + (y - self.jump_vel,)
 
-    def score(self, win):
-
-        pygame.font.init()  # Initialiser le module de police
-        font = pygame.font.SysFont('Arial', 20)  # Choisir la police et la taille
+    def score(self):
         score = int(self.moving_ground - 600)
-        score_text = font.render(f"Score:{score}", True, (0, 100, 255))
-        win.blit(score_text, (10, 10))
-
         return score

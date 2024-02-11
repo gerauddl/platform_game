@@ -49,13 +49,10 @@ class State:
 
     def get_direction_x(self):
 
-        l_x = [plat[0] for plat in self.next_platforms[:2]]
-
-        for x in l_x:
-            if self.player_position[0] < x:
-                self.direction_x = 1
-            else:
-                self.direction_x = 0
+        if self.player_position[0] < self.next_platforms[0][0]:
+            self.direction_x = 1
+        else:
+            self.direction_x = 0
 
     def get_direction_y(self):
         if self.player_position[1] > self.next_platforms[1]:
