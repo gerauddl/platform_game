@@ -29,6 +29,7 @@ class State:
         self.distances = [dist/10 for dist in self.distances]
         self.get_direction_x()
         self.draw_center_platform(win)
+
     def get_next_platforms(self, initial_state):
         if initial_state:
             l_plat_raw = [((platform[1] + platform[0]) / 2, platform[2]) for platform in self.platforms]

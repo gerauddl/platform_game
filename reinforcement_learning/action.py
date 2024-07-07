@@ -17,10 +17,10 @@ class Action:
 
         if random.random() > epsilon:
             with torch.no_grad():
-                q_values = dqn.forward(current_state)
 
-                if i % 100 == 0:
-                    print(q_values)
+                q_values = dqn.forward_main_net(current_state)
+                if i % 500 == 0:
+                    print(f'Voici les q-values: {q_values}')
                 action = q_values.max(0)[1].view(1, 1)
                 if self.action_mapping[action.item()] == "spacing move" and is_jump:
                     _, top_indices = q_values.topk(2, dim=0)  # Récupère les indices des deux valeurs les plus élevées

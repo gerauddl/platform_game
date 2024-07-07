@@ -185,5 +185,5 @@ class Player:
                 self.platforms_coord[i] = self.platforms_coord[i][:2] + (y - self.jump_vel,)
 
     def score(self):
-        score = int(self.moving_ground - 600)
-        return score
+        player_height = self.moving_ground - 600
+        return int(player_height)

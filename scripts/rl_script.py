@@ -1,15 +1,12 @@
 import json
 import os
-
 import pygame
 import math
 import sys
 import time
-import torch
 from collections import deque
 import numpy as np
 import random
-
 from multiprocessing import Process, Queue
 import matplotlib.pyplot as plt
 
@@ -18,7 +15,7 @@ sys.path.insert(0, '/Users/geraud/Documents/GitHub/platform_game')
 from game_design.game_init import game_init
 from reinforcement_learning.action import Action
 from reinforcement_learning.state import State
-from reinforcement_learning.brain import DQN, optimize_model
+from reinforcement_learning.brain import *
 from reinforcement_learning.replay_memory import ReplayMemory
 import torch.optim as optim
 
@@ -29,10 +26,10 @@ def draw_text(text, x, y, win):
     score_text = font.render(text, True, (0, 150, 255))
     win.blit(score_text, (x, y))
 
-n=32
+n=1
 fig, ax = plt.subplots()
 lines = []  # Pour stocker les objets de ligne
-pool_names = [f"Pool {i+1}" for i in range(n)]  # Exemple de noms de pools
+pool_names = [f"Process {i+1}" for i in range(n)]  # Exemple de noms de process
 
 for name in pool_names:
     line, = ax.plot([], [], label=name)
@@ -88,13 +85,12 @@ def rl_training(index,
     l_scores = []
     max_scores = deque([], maxlen=30)
     moving_average = []
-    highest_score = 0
+    highest_score_all_time = 0
     win = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Simple Platformer")
     epsilon_end = 0.1
     epsilon_decay = num_episodes/2
-    epsilon_by_episode = lambda episode: epsilon_end + (epsilon_start - epsilon_end) * math.exp(
-        -1. * episode / epsilon_decay)
+    epsilon_by_episode = lambda episode: epsilon_end + (epsilon_start - epsilon_end) * math.exp(-1. * episode / epsilon_decay)
     action_mapping = {0: 'left move', 1: 'right move', 2: 'spacing move', 3: 'no move'}
 
     dqn = DQN(dqn_input, 4)
@@ -110,7 +106,7 @@ def rl_training(index,
     for episode in range(num_episodes):
         time_start = time.time()
         if episode != 0:
-            highest_ep_score = max(scores)
+            highest_ep_score = highest_score
             #l_scores.append(highest_ep_score)
             max_scores.append(highest_ep_score)
             moving_average.append(np.mean(max_scores))
@@ -133,18 +129,20 @@ def rl_training(index,
         player_coord = (player.x, player.y)
         state.get_current_state(player_coord, player.platforms_coord, player.platform_num, win, initial_state=True)
         initial_dist = state.distances
-        current_state = torch.tensor([initial_dist[0], state.direction_x, player.isJump, player.jump_vel
-        ], dtype=torch.float32)
+
+        current_state = torch.tensor([1, state.direction_x, player.isJump, 1], dtype=torch.float32)
 
         if episode % 100 == 0 and episode != 0:
             torch.save(dqn.state_dict(), f'/Users/geraud/Documents/game_weights/pool_{index}/model_dqn_platform_game_{weights_num + episode}.pth')
         scores = []
 
         done = False
-
+        highest_score = 0
         nb_action = 0
         nb_know_action = 0
-
+        l_next_state = []
+        l_jump_vel = []
+        l_reward = []
         while not done:
 
             pygame.time.delay(0)
@@ -169,12 +167,23 @@ def rl_training(index,
                 state.get_current_state(player_coord, player.platforms_coord, player.platform_num, win, initial_state=True)
                 next_state_dist = state.distances
 
-            reward = (player.score() - next_state_dist[0]*1.25)
+            reward = player.score() - next_state_dist[0]*1.25
 
             if player.score() > highest_score:
                 highest_score = player.score()
+            if player.score() > highest_score_all_time:
+                highest_score_all_time = player.score()
 
-            next_state = torch.tensor([next_state_dist[0], state.direction_x, player.isJump, player.jump_vel
+            l_next_state.append(next_state_dist[0])
+            l_jump_vel.append(player.jump_vel)
+
+            if (np.min(l_next_state) != np.max(l_next_state)) and (np.min(l_jump_vel) != np.max(l_jump_vel)):
+                next_state_dist_standard = (next_state_dist[0] - np.min(l_next_state))/(np.max(l_next_state) - np.min(l_next_state))
+                jump_vel_standard = (player.jump_vel - np.min(l_jump_vel))/(np.max(l_jump_vel) - np.min(l_jump_vel))
+            else:
+                next_state_dist_standard = 0.8
+                jump_vel_standard = 0.8
+            next_state = torch.tensor([next_state_dist_standard, state.direction_x, player.isJump, jump_vel_standard
                                        ], dtype=torch.float32)
 
             if nb_action != 0:
@@ -200,8 +209,11 @@ def rl_training(index,
 
             if len(memory) > batch_size:
                 batch = memory.sample(batch_size)
-                optimize_model(dqn, optimizer, batch)
-                if i % 10000 == 0 and i != 0:
+                optimize_model(dqn, optimizer, batch, i)
+
+                if i % 500 == 0 and i != batch_size - 1:
+                    update_target_network(dqn)
+                if i % 500 == 0 and i != 0:
                     memory.get_batch_info(batch)
 
             if game_rules.game_over:
@@ -227,10 +239,10 @@ def rl_training(index,
 
             current_time = time.time()
 
-            if player.score() == 0 and current_time - time_start > 5:
+            if player.score() < 375 and current_time - time_start > 7:
                 done = True
-            if player.score() < 3000 and current_time - time_start > 40:
-                done= True
+            if player.score() < 3000 and current_time - time_start > 25:
+                done = True
             elif current_time - time_start > 110:
                 done= True
 
@@ -251,7 +263,7 @@ if __name__ == "__main__":
     ax.set_title('Progression du Score par Épisode')
 
     n = 12  # Nombre de pools
-    num_episodes = 3000
+    num_episodes = 400
     queue = Queue()
     lines = {}
     data = {i: ([], []) for i in range(1, n + 1)}
@@ -271,7 +283,9 @@ if __name__ == "__main__":
 
     #input = [(id, 2000, 4, batch_size, 1, mem, lr) for id, batch_size, mem, lr in zip(l_id, l_batch_size, l_memory_len, l_lr)]
 
-    processes = [Process(target=rl_training, args=(id, num_episodes, 4, batch_size, 1, mem, lr, queue)) for id, batch_size, mem, lr in zip(l_id, l_batch_size, l_memory_len, l_lr)]
+    # processes = [Process(target=rl_training, args=(id, num_episodes, 4, batch_size, 1, mem, lr, queue)) for id, batch_size, mem, lr in zip(l_id, l_batch_size, l_memory_len, l_lr)]
+    processes = [Process(target=rl_training, args=(1, num_episodes, 4, 24, 1, 18984, 1.5*(10**-8), queue))]
+
     for p in processes:
         p.start()
 
